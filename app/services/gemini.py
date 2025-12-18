@@ -557,7 +557,7 @@ class GeminiClient:
             for model in data.get("models", []):
                 models.append(model["name"])
                 if (
-                    model["name"].startswith("models/gemini-2")
+                    ("pro" in model["name"] or "flash" in model["name"])
                     and settings.search["search_mode"]
                 ):
                     models.append(model["name"] + "-search")
