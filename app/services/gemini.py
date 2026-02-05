@@ -188,7 +188,8 @@ class GeminiClient:
                 extra={"key": self.api_key[:8], "model": request.model},
             )
 
-            data.setdefault("tools", []).append({"google_search": {}})
+            # 修改点：将 google_search 改为 googleSearch (驼峰命名)，适配 Gemini 2.0/3.0
+            data.setdefault("tools", []).append({"googleSearch": {}})
             model = request.model.removesuffix("-search")
 
         return api_version, model, data
