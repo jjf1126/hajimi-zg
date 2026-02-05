@@ -63,26 +63,45 @@ class OpenAIClient:
             "presence_penalty",
         ]
 
-        # 修复：使用 self 调用方法
         data = self.filter_data_by_whitelist(request, whitelist)
 
-        # 修复：data 是字典，必须用 ["key"] 访问
+        # --- 核心修复开始 ---
+        
+        # 1. 安全初始化 tools (修复 crash 问题)
+        # 这里的关键是：如果 request.tools 为 None，whitelist 过滤后 data["tools"] 会是 None
+        # 直接调用 setdefault...append 会报错，所以必须先确保它是个 list
+        if data.get("tools") is None:
+            data["tools"] = []
+
+        # 2. 联网搜索模式处理
         if settings.search["search_mode"] and data.get("model", "").endswith("-search"):
             log(
                 "INFO",
                 "开启联网搜索模式 (OpenAI Endpoint)",
-                extra={"key": self.api_key[:8], "model": data["model"]},
+                extra={"key": self.api_key[:8], "model": data.get("model")},
             )
-            # 修复：使用 googleSearch (驼峰)
-            data.setdefault("tools", []).append({"googleSearch": {}})
+            
+            # 检查是否已包含搜索工具，防止重复添加
+            tools_list = data["tools"]
+            has_search_tool = False
+            for tool in tools_list:
+                if isinstance(tool, dict) and ("googleSearch" in tool or "google_search" in tool):
+                    has_search_tool = True
+                    break
+            
+            if not has_search_tool:
+                # 使用 googleSearch (驼峰) 适配 Gemini API
+                tools_list.append({"googleSearch": {}})
+            
             # 移除后缀
             data["model"] = data["model"].removesuffix("-search")
 
-        # 确保移除后缀 (即使没开启搜索模式，只要带了后缀也要移除，防止报错)
+        # 3. 兜底逻辑：即使没开启搜索模式，只要检测到后缀也必须移除，否则 API 会报 404
         if data.get("model", "").endswith("-search"):
              data["model"] = data["model"].removesuffix("-search")
+             
+        # --- 核心修复结束 ---
 
-        # 真流式请求处理逻辑
         extra_log = {
             "key": self.api_key[:8],
             "request_type": "stream",
@@ -90,6 +109,7 @@ class OpenAIClient:
         }
         log("INFO", "流式请求开始", extra=extra_log)
 
+        # 注意：这里使用的是 Google 的 OpenAI 兼容接口
         url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
         headers = {
             "Content-Type": "application/json",
@@ -101,10 +121,9 @@ class OpenAIClient:
                 "POST", url, headers=headers, json=data, timeout=600
             ) as response:
                 try:
-                    # 检查 HTTP 状态
                     if response.status_code != 200:
-                         await response.aread()
-                         response.raise_for_status()
+                        await response.aread()
+                        response.raise_for_status()
                     
                     buffer = b""
                     async for line in response.aiter_lines():
