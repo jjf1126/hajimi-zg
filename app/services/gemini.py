@@ -166,17 +166,34 @@ class GeminiClient:
                 request, contents, safety_settings, system_instruction
             )
 
-        # 联网模式逻辑修正
+        # 联网模式逻辑修正 - 修改开始
         if settings.search["search_mode"] and request.model.endswith("-search"):
             log(
                 "INFO",
                 "开启联网搜索模式",
                 extra={"key": self.api_key[:8], "model": request.model},
             )
-            # 使用 googleSearch (驼峰) 适配 Gemini 2.0/3.0
-            data.setdefault("tools", []).append({"googleSearch": {}})
+            
+            # 获取或初始化 tools 列表
+            result_tools = data.get("tools")
+            if result_tools is None:
+                result_tools = []
+                data["tools"] = result_tools
+
+            # 检查 tools 中是否已包含 googleSearch (兼容 google_search)
+            has_search = False
+            for tool in result_tools:
+                if isinstance(tool, dict) and (tool.get("googleSearch") is not None or tool.get("google_search") is not None):
+                    has_search = True
+                    break
+            
+            if not has_search:
+                # 使用 googleSearch (驼峰) 适配 Gemini 2.0/3.0
+                result_tools.append({"googleSearch": {}})
+
             # 必须移除 -search 后缀，否则 Google 返回 404
             model = request.model.removesuffix("-search")
+        # 联网模式逻辑修正 - 修改结束
 
         return api_version, model, data
 
