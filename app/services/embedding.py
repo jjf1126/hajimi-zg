@@ -10,7 +10,7 @@ class EmbeddingClient:
     async def create_embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
         model_name = request.model
         
-        url = f"https://jjf1126-gemini-proxy.jjfanm.workers.dev/v1beta/models/{model_name}:batchEmbedContents"
+        url = f"https://gemini.031707.xyz/v1beta/models/{model_name}:batchEmbedContents"
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": self.api_key,
