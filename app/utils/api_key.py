@@ -84,7 +84,7 @@ async def test_api_key(api_key: str) -> bool:
     try:
         import httpx
 
-        url = "https://jjf1126-gemini-proxy.jjfanm.workers.dev/v1beta/models?key={}".format(
+        url = "https://gemini.031707.xyz/v1beta/models?key={}".format(
             api_key
         )
         async with httpx.AsyncClient() as client:
