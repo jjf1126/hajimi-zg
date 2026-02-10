@@ -307,7 +307,7 @@ class GeminiClient:
             request, contents, safety_settings, system_instruction
         )
 
-        url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model}:streamGenerateContent?key={self.api_key}&alt=sse"
+        url = f"https://jjf1126-gemini-proxy.jjfanm.workers.dev/{api_version}/models/{model}:streamGenerateContent?key={self.api_key}&alt=sse"
         headers = {
             "Content-Type": "application/json",
         }
@@ -354,7 +354,7 @@ class GeminiClient:
             request, contents, safety_settings, system_instruction
         )
 
-        url = f"https://generativelanguage.googleapis.com/{api_version}/models/{model}:generateContent?key={self.api_key}"
+        url = f"https://jjf1126-gemini-proxy.jjfanm.workers.dev/{api_version}/models/{model}:generateContent?key={self.api_key}"
         headers = {
             "Content-Type": "application/json",
         }
@@ -514,7 +514,7 @@ class GeminiClient:
 
     @staticmethod
     async def list_available_models(api_key) -> list:
-        url = "https://generativelanguage.googleapis.com/v1beta/models?key={}".format(
+        url = "https://jjf1126-gemini-proxy.jjfanm.workers.dev/v1beta/models?key={}".format(
             api_key
         )
         async with httpx.AsyncClient() as client:
@@ -535,7 +535,7 @@ class GeminiClient:
 
     @staticmethod
     async def list_native_models(api_key):
-        url = "https://generativelanguage.googleapis.com/v1beta/models?key={}".format(
+        url = "https://jjf1126-gemini-proxy.jjfanm.workers.dev/v1beta/models?key={}".format(
             api_key
         )
         async with httpx.AsyncClient() as client:
